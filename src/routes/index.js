@@ -22,8 +22,8 @@ router.get('/', async (req, res) => {
 
 router.post('/movie', async (req, res) => {
     try{
-        const {field, sort} = req.body;
-        const {data} = await axios.get(`https://swapi.dev/api/${field}`);
+        const {sort, filter, order} = req.body;
+        const {data} = await axios.get(`https://swapi.dev/api/films`);
         const result = [];
 
         function toFeet (n) {
@@ -45,47 +45,68 @@ router.post('/movie', async (req, res) => {
         }
 
         function sortByHeight(a, b) {
-            if ( a.height < b.height ){
+            if ( Number(a.height) < Number(b.height) ){
                 return -1;
               }
-              if ( a.height > b.height ){
+              if (Number(a.height) > Number(b.height) ){
                 return 1;
               }
               return 0;
         }
 
-
         for (let i = 0; i < data.results.length; i++) {
             let charactersList = [];
-            let charactersListWithInches = []
+            
             for(let j = 0; j < data.results[i].characters.length; j++){
                 let character = await await axios.get(data.results[i].characters[j]);
                 toFeet(character.data.height)
                 charactersList.push(character.data)
             }
 
-            for(let j = 0;  j < charactersList.length; j++){
-                charactersListWithInches.push(toFeet(charactersList[i].height));
-            }
-
             if(sort === 'name'){
                 charactersList.sort(sortByName);
+                if(order === "descending"){
+                    charactersList.reverse();
+                }
             }
             else if(sort === 'height'){
                 charactersList.sort(sortByHeight);
-            } else {
+                if(order === "descending"){
+                    charactersList.reverse();
+                }
+            } 
+            else {
                 return res.send('Please enter a valid sort ["name" or "height"]')
             }
+
+            charactersList;
+            console.log(filter);
+
+            if (filter === "male"){
+                charactersList =  charactersList.filter(item => item.gender === "male");
+            }
+            else if (filter === "female"){
+                characterList = charactersList.filter(item => item.gender === "female")
+            }
+            else if (filter === "others"){
+                characterList = charactersList.filter(item => item.gender !== "male" || item.gender !== "female");
+            }
             
+            let metadata = "";
+            // for(let j = 0; j < charactersList.length; j++){
+
+            // }
+
             charactersList.forEach(item => {
                 item.height = toFeet(item.height);
             })
             
-            console.log(charactersList);
             let details = { 
+                results: charactersList.length + " matches this result",
                 title: data.results[i].title,
                 opening_crawl: data.results[i].opening_crawl,
                 release_date: data.results[i].release_date,
+                characters: charactersList,
             }
             result.push(details);
         }
