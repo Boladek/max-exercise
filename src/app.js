@@ -1,6 +1,7 @@
 const express = require('express');
 const indexRoute = require('./routes/index');
 const app = express();
+require('dotenv').config();
 
 app.use(express.json());
 app.use('/', indexRoute);
