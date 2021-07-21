@@ -7,7 +7,8 @@ const toFeet = require('../helpers/converter');
 
 router.post('/movie', async (req, res) => {
     try{
-        const {sort, filter, order} = req.body;
+        const {sort, filter} = req.body;
+        const  order = req.body.order || "ascending";
         const {data} = await axios.get(`https://swapi.dev/api/films`);
         const result = [];
 
@@ -57,7 +58,7 @@ router.post('/movie', async (req, res) => {
             })
             
             let details = { 
-                results: `${charactersList.length}  characters (${filter}) match this movie with a cummulative height ${toFeet(totalheight)} in ${order} order`,
+                results: `${charactersList.length}  characters (${filter}) match this movie, sorted by ${sort} with a cummulative height ${toFeet(totalheight)} in ${order} order`,
                 title: data.results[i].title,
                 opening_crawl: data.results[i].opening_crawl,
                 release_date: data.results[i].release_date,
