@@ -2,23 +2,8 @@ const express = require('express');
 const pool = require('../database/db');
 const router = express.Router();
 const axios = require('axios');
-
-router.get('/todo', async (req, res) => {
-    try{
-        res.send('Testing testing')
-    }catch(error){
-        console.log(error)
-    }
-})
-
-router.get('/', async (req, res) => {
-    try {
-        const {data} = await axios.get("https://swapi.dev/api//films");
-        res.json(data)
-    } catch (error) {
-        console.log(error);
-    }
-})
+const {sortByName, sortByHeight} = require('../helpers/sorters');
+const toFeet = require('../helpers/converter');
 
 router.post('/movie', async (req, res) => {
     try{
@@ -26,50 +11,22 @@ router.post('/movie', async (req, res) => {
         const {data} = await axios.get(`https://swapi.dev/api/films`);
         const result = [];
 
-        function toFeet (n) {
-            n = Number(n);
-            const realFeet = ((n*0.393700) / 12);
-            const feet = Math.floor(realFeet);
-            const inches = Math.round((realFeet - feet) * 12);
-            return feet + "feet and " + inches + "inches";
-          }
-
-          function sortByName(a, b) {
-            if ( a.name < b.name ){
-                return -1;
-              }
-              if ( a.name > b.name ){
-                return 1;
-              }
-              return 0;
-        }
-
-        function sortByHeight(a, b) {
-            if ( Number(a.height) < Number(b.height) ){
-                return -1;
-              }
-              if (Number(a.height) > Number(b.height) ){
-                return 1;
-              }
-              return 0;
-        }
-
         for (let i = 0; i < data.results.length; i++) {
             let charactersList = [];
             
-            for(let j = 0; j < data.results[i].characters.length; j++){
+            for (let j = 0; j < data.results[i].characters.length; j++) {
                 let character = await await axios.get(data.results[i].characters[j]);
                 toFeet(character.data.height)
                 charactersList.push(character.data)
             }
 
-            if(sort === 'name'){
+            if (sort === 'name') {
                 charactersList.sort(sortByName);
                 if(order === "descending"){
                     charactersList.reverse();
                 }
             }
-            else if(sort === 'height'){
+            else if (sort === 'height') {
                 charactersList.sort(sortByHeight);
                 if(order === "descending"){
                     charactersList.reverse();
@@ -88,7 +45,9 @@ router.post('/movie', async (req, res) => {
             else if (filter === "others"){
                 charactersList = charactersList.filter(item => item.gender !== "male" && item.gender !== "female");
             }
+
             let totalheight = 0;
+
             for(let j = 0; j <charactersList.length; j++){
                 totalheight += Number(charactersList[j].height);
             }
@@ -98,7 +57,7 @@ router.post('/movie', async (req, res) => {
             })
             
             let details = { 
-                results: `${charactersList.length}  results (${filter}) matches this movie with totalheight ${toFeet(totalheight)}`,
+                results: `${charactersList.length}  characters (${filter}) match this movie with a cummulative height ${toFeet(totalheight)} in ${order} order`,
                 title: data.results[i].title,
                 opening_crawl: data.results[i].opening_crawl,
                 release_date: data.results[i].release_date,
@@ -108,30 +67,12 @@ router.post('/movie', async (req, res) => {
         }
 
         result.sort((a, b) => new Date(a.release_date) - new Date(b.release_date))
-        res.send(result);
-    }catch(error){
-        console.log(error)
-    }
-})
+        res.status(200).json(result);
 
-
-router.get('/todo:id', async(req, res) => {
-    try {
-    
     } catch (error) {
-        
+        console.log(error);
+        res.status(400).json(error.message);
     }
 })
-
-router.post('/todo', async (req, res) => {
-    try {
-        const {description} = req.body;  
-        const newTodo = await pool.query("INSERT INTO todo_database (description) VALUES  ($1)", [description])
-        res.json(newTodo);
-    } catch (error) {
-        console.log(error.message)
-    }
-})
-
 
 module.exports = router;
