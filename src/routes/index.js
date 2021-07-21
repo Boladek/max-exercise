@@ -86,15 +86,18 @@ router.post('/movie', async (req, res) => {
                 charactersList =  charactersList.filter(item => item.gender === "male");
             }
             else if (filter === "female"){
-                characterList = charactersList.filter(item => item.gender === "female")
+                charactersList = charactersList.filter(item => item.gender === "female")
             }
             else if (filter === "others"){
-                characterList = charactersList.filter(item => item.gender !== "male" || item.gender !== "female");
+                charactersList = charactersList.filter(item => item.gender !== "male" && item.gender !== "female");
             }
             
-            let metadata = "";
+            // let metadata = "";
+            // let count = 0;
             // for(let j = 0; j < charactersList.length; j++){
-
+            //     if(charactersList[j].gender === filter){
+            //         count++;
+            //     }
             // }
 
             charactersList.forEach(item => {
@@ -102,7 +105,7 @@ router.post('/movie', async (req, res) => {
             })
             
             let details = { 
-                results: charactersList.length + " matches this result",
+                results: `${charactersList.length}  results matches this search, ${filter}`,
                 title: data.results[i].title,
                 opening_crawl: data.results[i].opening_crawl,
                 release_date: data.results[i].release_date,
