@@ -79,9 +79,6 @@ router.post('/movie', async (req, res) => {
                 return res.send('Please enter a valid sort ["name" or "height"]')
             }
 
-            charactersList;
-            console.log(filter);
-
             if (filter === "male"){
                 charactersList =  charactersList.filter(item => item.gender === "male");
             }
@@ -91,21 +88,17 @@ router.post('/movie', async (req, res) => {
             else if (filter === "others"){
                 charactersList = charactersList.filter(item => item.gender !== "male" && item.gender !== "female");
             }
-            
-            // let metadata = "";
-            // let count = 0;
-            // for(let j = 0; j < charactersList.length; j++){
-            //     if(charactersList[j].gender === filter){
-            //         count++;
-            //     }
-            // }
+            let totalheight = 0;
+            for(let j = 0; j <charactersList.length; j++){
+                totalheight += Number(charactersList[j].height);
+            }
 
             charactersList.forEach(item => {
                 item.height = toFeet(item.height);
             })
             
             let details = { 
-                results: `${charactersList.length}  results matches this search, ${filter}`,
+                results: `${charactersList.length}  results (${filter}) matches this movie with totalheight ${toFeet(totalheight)}`,
                 title: data.results[i].title,
                 opening_crawl: data.results[i].opening_crawl,
                 release_date: data.results[i].release_date,
